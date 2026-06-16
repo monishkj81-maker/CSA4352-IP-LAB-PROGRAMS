@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyBook - Flight Reservation System</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f4f7fb;
+}
+
+header{
+    background:linear-gradient(135deg,#0077ff,#00b4ff);
+    color:white;
+    padding:20px 10%;
+}
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.hero{
+    text-align:center;
+    padding:60px 20px;
+}
+
+.hero h1{
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.hero p{
+    font-size:18px;
+}
+
+.search-container{
+    background:white;
+    width:90%;
+    max-width:1100px;
+    margin:-30px auto 40px;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+}
+
+input, select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+button{
+    background:#0077ff;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+    background:#005ed1;
+}
+
+.search-btn{
+    width:100%;
+}
+
+.results{
+    width:90%;
+    max-width:1100px;
+    margin:auto;
+    padding-bottom:40px;
+}
+
+.results h2{
+    margin-bottom:20px;
+}
+
+.flight-card{
+    background:white;
+    padding:20px;
+    margin-bottom:15px;
+    border-radius:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+.flight-info{
+    display:flex;
+    gap:40px;
+    flex-wrap:wrap;
+}
+
+.price{
+    font-size:24px;
+    color:#0077ff;
+    font-weight:bold;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:white;
+    padding:25px;
+    width:90%;
+    max-width:450px;
+    border-radius:12px;
+}
+
+.modal-content h3{
+    margin-bottom:15px;
+}
+
+.modal-content input{
+    margin-bottom:10px;
+}
+
+.close{
+    float:right;
+    cursor:pointer;
+    font-size:22px;
+}
+
+.success{
+    color:green;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+footer{
+    text-align:center;
+    padding:20px;
+    background:#111827;
+    color:white;
+}
+
+@media(max-width:768px){
+    .hero h1{
+        font-size:30px;
+    }
+
+    .flight-card{
+        flex-direction:column;
+        gap:15px;
+        align-items:flex-start;
+    }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">✈ SkyBook</div>
+        <div>Online Flight Reservation</div>
+    </nav>
+
+    <div class="hero">
+        <h1>Book Flights Anywhere</h1>
+        <p>Search, Compare & Reserve Flights Easily</p>
+    </div>
+</header>
+
+<section class="search-container">
+    <div class="form-grid">
+
+        <select id="tripType">
+            <option>One Way</option>
+            <option>Round Trip</option>
+        </select>
+
+        <input type="text" id="from" placeholder="From">
+
+        <input type="text" id="to" placeholder="To">
+
+        <input type="date" id="departure">
+
+        <input type="date" id="returnDate">
+
+        <select id="passengers">
+            <option>1 Passenger</option>
+            <option>2 Passengers</option>
+            <option>3 Passengers</option>
+            <option>4 Passengers</option>
+        </select>
+
+        <button class="search-btn" onclick="searchFlights()">
+            Search Flights
+        </button>
+
+    </div>
+</section>
+
+<section class="results">
+    <h2>Available Flights</h2>
+
+    <div id="flightResults">
+        <p>Search for flights to view results.</p>
+    </div>
+</section>
+
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+
+        <span class="close" onclick="closeModal()">&times;</span>
+
+        <h3>Passenger Details</h3>
+
+        <input type="text" id="name" placeholder="Full Name">
+
+        <input type="email" id="email" placeholder="Email">
+
+        <input type="tel" id="phone" placeholder="Phone Number">
+
+        <button onclick="confirmBooking()">Confirm Booking</button>
+
+        <div id="message"></div>
+
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 SkyBook Flight Reservation System</p>
+</footer>
+
+<script>
+
+const flights = [
+{
+    airline:"Air India",
+    from:"Chennai",
+    to:"Delhi",
+    time:"08:00 AM",
+    price:"₹6,499"
+},
+{
+    airline:"IndiGo",
+    from:"Chennai",
+    to:"Mumbai",
+    time:"10:30 AM",
+    price:"₹5,299"
+},
+{
+    airline:"Vistara",
+    from:"Chennai",
+    to:"Bangalore",
+    time:"01:45 PM",
+    price:"₹3,899"
+},
+{
+    airline:"Akasa Air",
+    from:"Chennai",
+    to:"Hyderabad",
+    time:"04:20 PM",
+    price:"₹4,299"
+}
+];
+
+function searchFlights(){
+
+    let container = document.getElementById("flightResults");
+
+    container.innerHTML = "";
+
+    flights.forEach(flight => {
+
+        container.innerHTML += `
+        <div class="flight-card">
+
+            <div class="flight-info">
+
+                <div>
+                    <h3>${flight.airline}</h3>
+                    <p>${flight.from} → ${flight.to}</p>
+                </div>
+
+                <div>
+                    <p>Departure</p>
+                    <strong>${flight.time}</strong>
+                </div>
+
+            </div>
+
+            <div>
+                <div class="price">${flight.price}</div>
+                <button onclick="bookFlight('${flight.airline}')">
+                    Book Now
+                </button>
+            </div>
+
+        </div>
+        `;
+    });
+}
+
+function bookFlight(airline){
+    document.getElementById("bookingModal").style.display="flex";
+}
+
+function closeModal(){
+    document.getElementById("bookingModal").style.display="none";
+}
+
+function confirmBooking(){
+
+    const name = document.getElementById("name").value;
+
+    if(name === ""){
+        alert("Please enter passenger name");
+        return;
+    }
+
+    document.getElementById("message").innerHTML =
+    `<p class="success">
+        Booking Confirmed! Thank you, ${name}.
+     </p>`;
+}
+
+window.onclick = function(event){
+    let modal = document.getElementById("bookingModal");
+
+    if(event.target === modal){
+        modal.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>
